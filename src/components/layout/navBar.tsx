@@ -1,7 +1,9 @@
-import { useDispatch, useSelector } from "react-redux"
-import { useAppSelector } from "../../hook/useAppSelector"
+import { useDispatch } from "react-redux"
+import { useAppSelector } from "../../hooks/useAppSelector"
 import {openModal} from "../../store/slices/openModal.slice"
 import { removeAuth,} from "../../store/slices/auth.slice"
+import Search from "../features/search/search"
+
 
 function NavBar() {
 
@@ -20,6 +22,7 @@ function NavBar() {
 
     return (
         <div>
+            <Search></Search>
             <button>главная</button>
             <button>корзина</button>
             <button>профиль</button>

@@ -6,6 +6,36 @@ const bcrypt = require('bcryptjs');
 require('dotenv').config();
 
 const app = express();
+
+// Добавьте это ПОСЛЕ объявления app, ПЕРЕД CORS
+app.use((req, res, next) => {
+  console.log('\n=== 📨 НОВЫЙ ЗАПРОС ===');
+  console.log(`📅 ${new Date().toISOString()}`);
+  console.log(`🌐 ${req.method} ${req.url}`);
+  console.log('📋 Headers:', {
+    origin: req.headers.origin,
+    'content-type': req.headers['content-type'],
+    cookie: req.headers.cookie ? 'Есть куки' : 'Нет кук'
+  });
+  console.log('🍪 Session ID:', req.sessionID);
+  console.log('📦 Body available:', !!req.body);
+  
+  // Сохраняем оригинальные методы для логирования ответа
+  const originalSend = res.send;
+  const originalJson = res.json;
+  
+  res.json = function(data) {
+    console.log(`📤 Ответ ${this.statusCode}:`, data);
+    return originalJson.call(this, data);
+  };
+  
+  res.send = function(data) {
+    console.log(`📤 Ответ ${this.statusCode}:`, typeof data === 'string' ? data.substring(0, 100) + '...' : data);
+    return originalSend.call(this, data);
+  };
+  
+  next();
+});
 const PORT = process.env.PORT || 5000;
 
 // Подключение к Supabase
@@ -247,6 +277,7 @@ app.post('/api/auth/login', async (req, res) => {
     req.session.login = user.login;
     req.session.isCreator = user.isCreator || false;
 
+    
     res.json({
       success: true,
       message: 'Вход выполнен',
@@ -307,8 +338,13 @@ app.post('/api/auth/logout', (req, res) => {
 // 6. Обновление статуса seller/buyer
 app.post('/api/buyer_or_seller', async (req, res) => {
   try {
-    // Проверяем авторизацию
+    console.log('=== /api/buyer_or_seller called ===');
+    console.log('Session:', req.session);
+    console.log('Session userId:', req.session.userId);
+    console.log('Body:', req.body);
+
     if (!req.session.userId) {
+      console.log('Ошибка: пользователь не авторизован');
       return res.status(401).json({ 
         success: false,
         error: 'Пользователь не авторизован' 
@@ -316,8 +352,10 @@ app.post('/api/buyer_or_seller', async (req, res) => {
     }
 
     const { isCreator } = req.body;
+    console.log('isCreator from body:', isCreator);
 
     if (isCreator === undefined) {
+      console.log('Ошибка: isCreator не передан');
       return res.status(400).json({ 
         success: false,
         error: 'Поле isCreator обязательно' 
@@ -325,23 +363,26 @@ app.post('/api/buyer_or_seller', async (req, res) => {
     }
 
     // Обновляем статус в базе
+    console.log('Обновление пользователя с ID:', req.session.userId);
+    
     const { data, error } = await supabase
       .from('authUser')
       .update({ 
         isCreator: isCreator,
-        updated_at: new Date().toISOString()
       })
       .eq('id', req.session.userId)
       .select('id, login, isCreator')
       .single();
 
     if (error) {
-      console.error('Ошибка обновления статуса:', error);
+      console.error('Ошибка Supabase:', error);
       return res.status(500).json({ 
         success: false,
-        error: 'Ошибка обновления данных' 
+        error: 'Ошибка обновления данных: ' + error.message 
       });
     }
+
+    console.log('Успешно обновлено:', data);
 
     // Обновляем сессию
     req.session.isCreator = isCreator;
@@ -353,10 +394,11 @@ app.post('/api/buyer_or_seller', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Ошибка обновления статуса:', err);
+    console.error('Ошибка в try-catch:', err);
+    console.error('Stack trace:', err.stack);
     res.status(500).json({ 
       success: false,
-      error: 'Внутренняя ошибка сервера' 
+      error: 'Внутренняя ошибка сервера: ' + err.message 
     });
   }
 });
@@ -373,7 +415,7 @@ app.get('/api/user/status', async (req, res) => {
 
     const { data, error } = await supabase
       .from('authUser')
-      .select('id, login, isCreator, created_at')
+      .select('id, login, isCreator')
       .eq('id', req.session.userId)
       .single();
 
@@ -387,7 +429,7 @@ app.get('/api/user/status', async (req, res) => {
 
     res.json({
       success: true,
-      isCreator: data.isCreator || false,
+      isCreator: data.isCreator,
       user: data
     });
 

@@ -1,9 +1,11 @@
-import { useAppSelector } from "../../../hook/useAppSelector";
+import { useAppSelector } from "../../../hooks/useAppSelector";
 import { useDispatch } from "react-redux";
 import { login } from "../../../store/slices/authTypeModal.slice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRegister } from "../../../hooks/useRegister";
-import { removeAuth, setAuth } from "../../../store/slices/auth.slice";
+import { closeModal } from "../../../store/slices/openModal.slice";
+import { noHide } from "../../../store/slices/buyerOrSeller.slice";
+import { setAuth } from "../../../store/slices/auth.slice";
 
 
 function AuthModal() {
@@ -15,15 +17,23 @@ function AuthModal() {
     } = useRegister()
 
 
+
     const dispatch = useDispatch()
 
     const isOpen = useAppSelector(state => state.openModal)
     const data = useAppSelector(state => state.authType)
     const authType = useAppSelector(state => state.authType)
+    const isAuth = useAppSelector(state => state.auth)
     
     const formStyle = {
         display: isOpen ? "block" : "none"
     }
+
+
+    useEffect (() => {
+        dispatch(closeModal())
+    }, [isAuth])
+
 
 
     const toggleMode = (e: React.MouseEvent) => {
@@ -39,6 +49,9 @@ function AuthModal() {
         } if(authType === true) {
             await register(loginUser, passwordUser)
         }
+            dispatch(noHide())
+            dispatch(closeModal())
+            dispatch(setAuth())
     }
 
     return (

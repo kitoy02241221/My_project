@@ -1,13 +1,17 @@
 import { configureStore } from "@reduxjs/toolkit";
 import authSliceReducer from "./slices/auth.slice"
 import authTypeModalReducer from "./slices/authTypeModal.slice"
-import openModalSLiceReducer, { openModal } from "./slices/openModal.slice"
+import openModalSLiceReducer from "./slices/openModal.slice"
+import buyerOrSellerSliceReducer from "./slices/buyerOrSeller.slice"
+import searchSliceReducer from "./slices/search.slice"
 
 export const store = configureStore({
     reducer: {
         auth: authSliceReducer,
         authType: authTypeModalReducer,
         openModal: openModalSLiceReducer,
+        buyerOrSeller: buyerOrSellerSliceReducer,
+        search: searchSliceReducer,
     }
 })
 
