@@ -1,13 +1,6 @@
 import axios from "axios";
 import { useState } from "react";
-
-const api = axios.create({
-    baseURL: "http://localhost:5000", // уже включает весь URL
-    withCredentials: true,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+import api from "../api/axiosBase";
 
 export const useAddInCart = () => {
     const [prodInCart, setProductInCart] = useState([]);
@@ -18,11 +11,6 @@ export const useAddInCart = () => {
                 product_id: productId,
                 quantity: 1,
             });
-            if (response.data.success === true) {
-                console.log("удалось добавить товар в корзину");
-            } else {
-                console.log("ошибка при добавлении в корзину");
-            }
         } catch (error) {
             console.log(error);
         }

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAddInCart } from "../../../../hooks/useAddInCart";
+import api from "../../../../api/axiosBase";
+import { Button } from "@mui/material";
 
 function Product() {
     const [data, setData] = useState<Array<any>>([]);
@@ -9,12 +11,10 @@ function Product() {
 
     const listProduct = async () => {
         setLoading(true);
-        const response = await fetch("http://localhost:5000/api/products", {
-            method: "GET",
-        });
-        const data = await response.json();
-        if (data.success === true) {
-            setData(data.products);
+
+        const response = await api.get("/api/products");
+        if (response.data.success === true) {
+            setData(response.data.products);
             setLoading(false);
         } else {
             setLoading(false);
@@ -56,14 +56,16 @@ function Product() {
                     />
                     <h3>{item.name}</h3>
                     <h4>{item.description}</h4>
-                    <button
-                        onClick={() => {
-                            addProduct(item.id);
-                        }}
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={addProduct.bind(null, item.id)}
                     >
                         в корзину
-                    </button>
-                    <button>купить</button>
+                    </Button>
+                    <Button variant="contained" size="small">
+                        купить
+                    </Button>
                 </div>
             ))}
         </div>

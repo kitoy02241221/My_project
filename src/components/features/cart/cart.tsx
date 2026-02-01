@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useGetInCart } from "../../../hooks/useGetInCart";
 import { display } from "@mui/system";
+import { Button } from "@mui/material";
 
 function Cart() {
     const { productinCart, error, isLoading, takeProduct } = useGetInCart();
@@ -36,7 +37,9 @@ function Cart() {
                             alt={item.product?.name}
                             style={imgStyle}
                         />
-                        <button>купить</button>
+                        <Button variant="outlined" size="small">
+                            купить
+                        </Button>
                     </div>
                 ))}
             </div>
