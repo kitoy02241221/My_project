@@ -1,5 +1,6 @@
-import { useAppSelector } from "../../../hooks/useAppSelector"
-import { hideSearch, noHideSearch } from "../../../store/slices/search.slice"
+import { Button, TextField } from "@mui/material"
+import { useAppSelector } from "../../../../hooks/useAppSelector"
+import { hideSearch, noHideSearch } from "../../../../store/slices/homePage/search.slice"
 import { useDispatch } from "react-redux"
 
 
@@ -27,13 +28,12 @@ function Search () {
     return (
         <div>
             <div style={inputStyle}>
-            <input
-            placeholder="поиск"
-            type="text"></input>
-            <button onClick={openSearch}>x</button>
+
+                <TextField size="small" type="text" label="поиск" variant="standard"></TextField>
+            <Button onClick={openSearch} variant="outlined" size="small">x</Button>
             </div>
 
-            <button style={searchStyle} onClick={openSearch}>поиск</button>
+            <Button style={searchStyle} onClick={openSearch} variant="outlined" size="small">поиск</Button>
         </div>
     )
 }

@@ -1,27 +1,19 @@
 import NavBar from "../components/layout/navBar"
-import AuthModal from "../components/features/authModal/authModal"
-import BuyerOrSeller from "../components/features/buyerOrSeller/buyerOrSeller"
-import { useAppSelector } from "../hooks/useAppSelector"
+import BuyerOrSeller from "../components/features/buyOrSell/buyerOrSeller/buyerOrSeller"
 import { useSellerStatus } from "../hooks/useSellerStatus"
-import { useEffect } from "react"
+import Catalog from "../components/features/catalog/catalog/catalog"
 
 function HomePage() {
 
-    const isAuth = useAppSelector(state => state.auth)
-    const {creator, checkStatus} = useSellerStatus()
-    
+    const {roleChosen, checkStatus} = useSellerStatus()
 
-
-    useEffect(() => {
-        checkStatus()
-        console.log(creator)
-    }, [isAuth])
+    checkStatus()
 
     return (
         <>
             <NavBar />
-            <AuthModal/>
-            {creator && <BuyerOrSeller/>}
+            {roleChosen && <BuyerOrSeller/>}
+            <Catalog/>
         </>
     )
 }

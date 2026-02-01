@@ -1,9 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authSliceReducer from "./slices/auth.slice"
-import authTypeModalReducer from "./slices/authTypeModal.slice"
-import openModalSLiceReducer from "./slices/openModal.slice"
-import buyerOrSellerSliceReducer from "./slices/buyerOrSeller.slice"
-import searchSliceReducer from "./slices/search.slice"
+import authSliceReducer from "./slices/homePage/auth.slice";
+import authTypeModalReducer from "./slices/homePage/authTypeModal.slice";
+import openModalSLiceReducer from "./slices/homePage/openModal.slice";
+import buyerOrSellerSliceReducer from "./slices/homePage/buyerOrSeller.slice";
+import searchSliceReducer from "./slices/homePage/search.slice";
+import openSellModalReducer from "./slices/profilePage/openSellModal";
 
 export const store = configureStore({
     reducer: {
@@ -12,8 +13,9 @@ export const store = configureStore({
         openModal: openModalSLiceReducer,
         buyerOrSeller: buyerOrSellerSliceReducer,
         search: searchSliceReducer,
-    }
-})
+        openSellModal: openSellModalReducer,
+    },
+});
 
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

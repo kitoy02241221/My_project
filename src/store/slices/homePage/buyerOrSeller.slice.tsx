@@ -1,18 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-
 const buyerOrSellerSlice = createSlice({
     name: "buyerOrSeller",
     initialState: false,
     reducers: {
         noHide: (state) => {
-            return !state
+            return true;
         },
         hide: (state) => {
-            return false
-        }
-    }
-})
+            return false;
+        },
+    },
+});
 
-export const {noHide, hide} = buyerOrSellerSlice.actions
-export default buyerOrSellerSlice.reducer
+export const { noHide, hide } = buyerOrSellerSlice.actions;
+export default buyerOrSellerSlice.reducer;

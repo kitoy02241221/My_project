@@ -1,49 +1,40 @@
-
 import { useState } from "react"
 
 
 export const useSellerStatus = () => {
-
+    const [roleStatus, setRoleStatus] = useState(false)
     const [error, setError] = useState("")
-    const [creator, setCreator] = useState(false)
-
+    const [roleChosen, setRoleChosen] = useState(false)
 
     const checkStatus = async () => {
-            try {
-                const response = await fetch("http://localhost:5000/api/user/status", {
-                    method: "GET",
-                    credentials: "include",
-                })
+        try {
+            const response = await fetch("http://localhost:5000/api/user/role-check", {
+                method: "GET",
+                credentials: "include"
+            })
+            const { success, roleChosen, role } = await response.json()
 
-                const result = await response.json()
-                if(result.success === true) {
-                    if(result.isCreator === false) {
-                        setCreator(false)
-                    } if(result.isCreator === true) {
-                        setCreator(false)
-                    } if(result.isCreator === null) {
-                        setCreator(true)
-                    }
-                    return creator
-                } if(result.success === false) {
-                    setError("ошибка при получении статуса пользователя")
-                }
+            if(success === true && roleChosen === false) {
+                setRoleChosen(true)
+            } else {
+                setRoleChosen(false)
+            }
 
-                } catch(error) {
-                    setError("ошибка при отправке запроса на получение статуса пользователя")
-                } finally {
-                    setError("")
-                }
+            if(roleChosen === true && role === 'seller') {
+                setRoleStatus(true)
+            } else  {
+                setRoleStatus(false)
+            }
+            
+        } catch (error) {
+            return error
         }
+    }
 
-    
-
-
-    return{
-        checkStatus,
-        setError,
+    return {
+        roleStatus,
         error,
-        setCreator,
-        creator
+        checkStatus,
+        roleChosen
     }
 }
