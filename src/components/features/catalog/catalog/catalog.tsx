@@ -1,15 +1,11 @@
+import Product from "../product/product";
 
-import { useEffect } from "react"
-import Product from "../product/product"
-import { useProduct } from "../../../../hooks/useProduct"
-
-function Catalog () {
-
+function Catalog() {
     return (
         <div>
-            <Product/>
+            <Product />
         </div>
-    )
+    );
 }
 
-export default Catalog
+export default Catalog;

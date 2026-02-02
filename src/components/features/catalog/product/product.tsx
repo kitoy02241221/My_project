@@ -3,11 +3,26 @@ import { useAddInCart } from "../../../../hooks/useAddInCart";
 import api from "../../../../api/axiosBase";
 import { Button } from "@mui/material";
 
+const catalogStyle = {
+    display: "flex",
+};
+
+const productStyle = {
+    margin: "10px",
+};
+
+const imgStyle = {
+    display: "block",
+    height: "250px",
+    width: "250px",
+    borderRadius: "8px",
+};
+
 function Product() {
     const [data, setData] = useState<Array<any>>([]);
     const [loading, setLoading] = useState(false);
 
-    const { prodInCart, addProduct } = useAddInCart();
+    const { addToCart } = useAddInCart();
 
     const listProduct = async () => {
         setLoading(true);
@@ -19,21 +34,6 @@ function Product() {
         } else {
             setLoading(false);
         }
-    };
-
-    const catalogStyle = {
-        display: "flex",
-    };
-
-    const productStyle = {
-        margin: "10px",
-    };
-
-    const imgStyle = {
-        display: "block",
-        height: "250px",
-        width: "250px",
-        borderRadius: "8px",
     };
 
     useEffect(() => {
@@ -59,7 +59,9 @@ function Product() {
                     <Button
                         variant="contained"
                         size="small"
-                        onClick={addProduct.bind(null, item.id)}
+                        onClick={() => {
+                            addToCart(item.id);
+                        }}
                     >
                         в корзину
                     </Button>

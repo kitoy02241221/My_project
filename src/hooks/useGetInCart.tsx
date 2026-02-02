@@ -1,9 +1,7 @@
-import axios from "axios";
 import { useState } from "react";
+import api from "../api/axiosBase";
 
 export const useGetInCart = () => {
-    axios.defaults.withCredentials = true;
-
     const [productinCart, setProductInCart] = useState<any[]>([]);
     const [error, setError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -13,11 +11,10 @@ export const useGetInCart = () => {
             setError(false);
             setIsLoading(true);
 
-            const response = await axios.get("/api/cart");
+            const response = await api.get("/api/cart");
 
             if (response.status === 200) {
                 setProductInCart(response.data.items);
-                console.log(productinCart);
             }
         } catch (error) {
             setError(true);

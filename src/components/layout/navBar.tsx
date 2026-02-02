@@ -1,61 +1,63 @@
-import { useDispatch } from "react-redux"
-import { useAppSelector } from "../../hooks/useAppSelector"
+import Search from "../features/navbar/search/search";
+import AuthModal from "../features/navbar/authModal/authModal";
 
-import {openModal} from "../../store/slices/homePage/openModal.slice"
-import { removeAuth } from "../../store/slices/homePage/auth.slice"
+import { useDispatch } from "react-redux";
+import { useAppSelector } from "../../hooks/useAppSelector";
+import { useNavigate } from "react-router-dom";
 
-import Search from "../features/navbar/search/search"
-import AuthModal from "../features/navbar/authModal/authModal"
+import { openModal } from "../../store/slices/homePage/openModal.slice";
+import { removeAuth } from "../../store/slices/homePage/auth.slice";
 
-import { useEffect } from "react"
-import { Button } from "@mui/material"
-import { useNavigate } from "react-router-dom"
-
+import { Button } from "@mui/material";
 
 function NavBar() {
-    const navigate = useNavigate()
-    const dispatch = useDispatch()
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
 
-    const isAuth = useAppSelector(state => state.auth)
+    const isAuth = useAppSelector((state) => state.auth);
 
     const navToProfile = () => {
-        if(isAuth === true) {
-            navigate("/profile")
+        if (isAuth === true) {
+            navigate("/profile");
         } else {
-            navigate("/")
+            navigate("/");
         }
-    }
+    };
 
     const navToCart = () => {
-        if(isAuth === true) {
-            navigate("/cart")
+        if (isAuth === true) {
+            navigate("/cart");
         } else {
-            navigate("/")
+            navigate("/");
         }
-    }
-    
+    };
+
     const auth = () => {
-        if(isAuth === false) {
-            dispatch(openModal())
+        if (isAuth === false) {
+            dispatch(openModal());
         } else {
-            dispatch(removeAuth())
+            dispatch(removeAuth());
         }
-    }
-    
+    };
+
     return (
         <div>
             <Search></Search>
-            <Button variant="outlined" size="small">главная</Button>
-            <Button variant="outlined" size="small" onClick={navToCart}>корзина</Button>
-            <Button variant="outlined" size="small" onClick={navToProfile}>профиль</Button>
-            <Button variant="outlined" size="small" onClick={auth}>
-                {isAuth
-                ? "выйти"
-                : "войти"}
+            <Button variant="outlined" size="small">
+                главная
             </Button>
-            <AuthModal/>
+            <Button variant="outlined" size="small" onClick={navToCart}>
+                корзина
+            </Button>
+            <Button variant="outlined" size="small" onClick={navToProfile}>
+                профиль
+            </Button>
+            <Button variant="outlined" size="small" onClick={auth}>
+                {isAuth ? "выйти" : "войти"}
+            </Button>
+            <AuthModal />
         </div>
-    )
+    );
 }
 
-export default NavBar
+export default NavBar;

@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { useAppSelector } from "../../../hooks/useAppSelector";
 import { open } from "../../../store/slices/profilePage/openSellModal";
 import { useSellerStatus } from "../../../hooks/useSellerStatus";
-import { useEffect } from "react";
 
 function MyProfile() {
     const isOpen: boolean = useAppSelector((state) => state.openSellModal);

@@ -1,21 +1,21 @@
 import { useEffect } from "react";
 import { useGetInCart } from "../../../hooks/useGetInCart";
-import { display } from "@mui/system";
 import { Button } from "@mui/material";
+
+const productStyle = {
+    margin: "10px",
+};
+
+const imgStyle = {
+    display: "block",
+    height: "250px",
+    width: "250px",
+    borderRadius: "8px",
+};
 
 function Cart() {
     const { productinCart, error, isLoading, takeProduct } = useGetInCart();
 
-    const productStyle = {
-        margin: "10px",
-    };
-
-    const imgStyle = {
-        display: "block",
-        height: "250px",
-        width: "250px",
-        borderRadius: "8px",
-    };
     useEffect(() => {
         const getIteminCart = async () => {
             await takeProduct();

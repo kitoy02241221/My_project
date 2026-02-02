@@ -309,15 +309,14 @@ app.post('/api/auth/logout', (req, res) => {
 
 // 1. Добавить товар в корзину
 app.post('/api/cart/add', async (req, res) => {
-  console.log('=== CART ADD ===');
-  console.log('Session userId:', req.session.userId);
-  console.log('Body:', req.body);
-
+  console.log('=== CART ADD DEBUG ===');
+  
   try {
     const userId = req.session.userId;
+    console.log('👤 UserId из сессии:', userId);
     
     if (!userId) {
-      console.log('❌ Нет userId в сессии');
+      console.log('❌ Нет userId в сессии. Вся сессия:', req.session);
       return res.status(401).json({ 
         success: false,
         error: 'Пользователь не авторизован' 
@@ -325,23 +324,29 @@ app.post('/api/cart/add', async (req, res) => {
     }
 
     const { product_id, quantity = 1 } = req.body;
+    console.log('📦 Полученные данные:', { product_id, quantity });
 
-    // Валидация
-    if (!product_id) {
-      return res.status(400).json({ 
+    // 1. Проверь что товар существует
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('id, name')
+      .eq('id', product_id)
+      .maybeSingle();
+    
+    console.log('🛍️ Товар из БД:', { product, productError });
+    
+    if (productError) {
+      throw productError;
+    }
+    
+    if (!product) {
+      return res.status(404).json({
         success: false,
-        error: 'ID товара обязателен' 
+        error: 'Товар не найден'
       });
     }
 
-    if (quantity <= 0) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Количество должно быть больше 0' 
-      });
-    }
-
-    // Проверяем, существует ли уже этот товар в корзине пользователя
+    // 2. Проверь корзину (оставь твой код)
     const { data: existingItem, error: checkError } = await supabase
       .from('inCart')
       .select('id, quantity')
@@ -349,52 +354,76 @@ app.post('/api/cart/add', async (req, res) => {
       .eq('product_id', product_id)
       .maybeSingle();
 
+    console.log('🛒 Существующий товар в корзине:', { existingItem, checkError });
+
     let result;
 
     if (existingItem) {
-      // Обновляем количество, если товар уже в корзине
+      console.log('🔄 Обновление с', existingItem.quantity, 'на', existingItem.quantity + quantity);
+      
       const { data, error } = await supabase
         .from('inCart')
         .update({ 
           quantity: existingItem.quantity + quantity,
-          updated_at: new Date().toISOString()
         })
         .eq('id', existingItem.id)
         .select()
         .single();
 
+      console.log('📝 Результат обновления:', { data, error });
+      
       if (error) throw error;
       result = data;
     } else {
-      // Добавляем новый товар в корзину
+      console.log('🆕 Вставка нового товара');
+      
       const { data, error } = await supabase
         .from('inCart')
         .insert([{
           user_id: userId,
           product_id: product_id,
           quantity: quantity,
-          created_at: new Date().toISOString()
         }])
         .select()
         .single();
 
+      console.log('📝 Результат вставки:', { data, error });
+      
       if (error) throw error;
       result = data;
     }
 
-    console.log('✅ Товар добавлен в корзину');
+    // 3. Проверь что действительно добавилось
+    const { data: verify, error: verifyError } = await supabase
+      .from('inCart')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('product_id', product_id)
+      .single();
+    
+    console.log('✅ Проверка после операции:', { verify, verifyError });
+
+    console.log('🎉 Финальный результат:', result);
 
     res.json({
       success: true,
       message: 'Товар добавлен в корзину',
-      item: result
+      item: result,
+      debug: { // временно для отладки
+        userId,
+        productExists: !!product,
+        operation: existingItem ? 'update' : 'insert',
+        verifyResult: verify
+      }
     });
 
   } catch (err) {
-    console.error('Ошибка добавления в корзину:', err);
+    console.error('❌ Ошибка добавления в корзину:', err);
+    console.error('❌ Stack:', err.stack);
     res.status(500).json({ 
       success: false,
-      error: 'Ошибка добавления в корзину' 
+      error: 'Ошибка добавления в корзину',
+      details: err.message
     });
   }
 });

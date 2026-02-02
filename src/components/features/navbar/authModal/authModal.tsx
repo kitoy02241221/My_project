@@ -19,7 +19,6 @@ function AuthModal() {
 
     const data = useAppSelector((state) => state.authType);
     const authType = useAppSelector((state) => state.authType);
-    const isAuth = useAppSelector((state) => state.auth);
     const isOpen = useAppSelector((state) => state.openModal);
 
     const formStyle = {
@@ -35,9 +34,10 @@ function AuthModal() {
 
         if (authType === false) {
             await register(loginUser, passwordUser, name, surname);
-        }
-        if (authType === true) {
+            // login
+        } else {
             await register(loginUser, passwordUser, name, surname);
+            // registration
         }
 
         dispatch(noHide());

@@ -25,22 +25,18 @@ export const useRegister = () => {
         try {
             if (authType === true) {
                 const response = await api.post("/api/auth/register", {
-                    body: JSON.stringify({
-                        login,
-                        password,
-                        name,
-                        surname,
-                    }),
+                    login,
+                    password,
+                    name,
+                    surname,
                 });
 
                 if (response.data.ok && response.data.success) {
                     api.post("/api/auth/login", {
-                        body: JSON.stringify({
-                            login,
-                            password,
-                            name,
-                            surname,
-                        }),
+                        login,
+                        password,
+                        name,
+                        surname,
                     });
                     dispatch(setAuth());
                     return { success: true, data: response.data.user };
@@ -50,20 +46,19 @@ export const useRegister = () => {
                 }
             } else {
                 const logined = await api.post("/api/auth/login", {
-                    body: JSON.stringify({
-                        login,
-                        password,
-                        name,
-                        surname,
-                    }),
+                    login,
+                    password,
                 });
 
                 if (logined.data.success === true) {
                     dispatch(setAuth());
                 }
             }
-        } catch (err) {
-            const errorMessage = "Ошибка сети: " + err;
+        } catch (err: any) {
+            const errorMessage =
+                err.response?.data.message || err.message || "произошла ошибка";
+
+            setError(errorMessage);
             return { success: false, error: errorMessage };
         } finally {
             setLoading(false);
