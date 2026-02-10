@@ -4,10 +4,10 @@ const buyerOrSellerSlice = createSlice({
     name: "buyerOrSeller",
     initialState: false,
     reducers: {
-        noHide: (state) => {
+        noHide: () => {
             return true;
         },
-        hide: (state) => {
+        hide: () => {
             return false;
         },
     },

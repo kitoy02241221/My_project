@@ -757,6 +757,7 @@ app.get('/api/cart/check/:product_id', async (req, res) => {
       .single();
 
     if (error || !cartItem) {
+      console.log("ошибка, товар не в корзине")
       return res.json({
         success: true,
         in_cart: false,
@@ -802,18 +803,73 @@ app.get('/api/cart/check/:product_id', async (req, res) => {
 
 // Загрузка изображения на Supabase Storage
 const uploadImageToStorage = async (base64Image, userId) => {
+  console.log('=== UPLOAD IMAGE DEBUG START ===');
+  
   try {
-    const matches = base64Image.match(/^data:image\/([a-zA-Z]+);base64,/);
-    if (!matches) {
-      throw new Error('Некорректный формат base64');
+    // 1. Проверка входных данных
+    console.log('📥 Входные данные:');
+    console.log('   userId:', userId);
+    console.log('   base64Image type:', typeof base64Image);
+    console.log('   base64Image length:', base64Image?.length || 0);
+    
+    if (!base64Image || typeof base64Image !== 'string') {
+      console.error('❌ base64Image не строка или пусто');
+      throw new Error('Нет данных изображения');
     }
     
-    const imageType = matches[1];
-    const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
-    const buffer = Buffer.from(base64Data, 'base64');
+    // 2. Проверка формата
+    console.log('🔍 Проверка формата...');
+    console.log('   Начинается с data:image/?', base64Image.startsWith('data:image/'));
     
-    const fileName = `product_${userId}_${Date.now()}.${imageType}`;
+    const matches = base64Image.match(/^data:image\/([a-zA-Z]+);base64,/);
+    console.log('   Регулярка нашла:', matches);
+    
+    if (!matches) {
+      console.log('   Первые 100 символов:', base64Image.substring(0, 100));
+      throw new Error('Некорректный формат base64. Ожидается data:image/...;base64,...');
+    }
+    
+    const imageType = matches[1].toLowerCase();
+    console.log('✅ Тип изображения:', imageType);
+    
+    // 3. Извлечение base64 данных
+    console.log('🔧 Извлекаю base64 данные...');
+    const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
+    console.log('   Длина после очистки:', base64Data.length);
+    console.log('   Первые 50 символов данных:', base64Data.substring(0, 50));
+    
+    if (!base64Data || base64Data.length < 100) {
+      throw new Error('Слишком мало данных после очистки');
+    }
+    
+    // 4. Конвертация в Buffer
+    console.log('🔄 Конвертация в Buffer...');
+    let buffer;
+    try {
+      buffer = Buffer.from(base64Data, 'base64');
+      console.log('   Успешно. Размер буфера:', buffer.length, 'байт');
+    } catch (bufferError) {
+      console.error('❌ Ошибка создания Buffer:', bufferError.message);
+      throw new Error('Некорректные base64 данные');
+    }
+    
+    if (buffer.length === 0) {
+      throw new Error('Буфер пустой');
+    }
+    
+    // 5. Подготовка к загрузке в Supabase
+    const fileName = `product_${userId}_${Date.now()}.${imageType === 'jpg' ? 'jpeg' : imageType}`;
     const filePath = `products/${userId}/${fileName}`;
+    
+    console.log('📁 Параметры загрузки:');
+    console.log('   fileName:', fileName);
+    console.log('   filePath:', filePath);
+    console.log('   contentType:', `image/${imageType}`);
+    console.log('   buffer size:', buffer.length, 'bytes');
+    
+    // 6. Загрузка в Supabase Storage
+    console.log('🚀 Отправляю в Supabase Storage...');
+    const uploadStartTime = Date.now();
     
     const { data, error } = await supabase.storage
       .from('product-images')
@@ -822,16 +878,54 @@ const uploadImageToStorage = async (base64Image, userId) => {
         upsert: false
       });
     
-    if (error) throw error;
+    const uploadTime = Date.now() - uploadStartTime;
+    console.log(`   Время загрузки: ${uploadTime}ms`);
     
-    const { data: urlData } = supabase.storage
+    if (error) {
+      console.error('❌ Ошибка Supabase Storage:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // Проверка конкретных ошибок
+      if (error.message.includes('bucket') || error.message.includes('Bucket')) {
+        console.error('⚠️ Возможно bucket "product-images" не существует в Supabase');
+      }
+      
+      if (error.message.includes('JWT')) {
+        console.error('⚠️ Проблема с аутентификацией Supabase');
+      }
+      
+      throw error;
+    }
+    
+    console.log('✅ Успешно загружено в Storage. Data:', data);
+    
+    // 7. Получение публичного URL
+    console.log('🔗 Получаю публичный URL...');
+    const { data: urlData, error: urlError } = supabase.storage
       .from('product-images')
       .getPublicUrl(filePath);
+    
+    if (urlError) {
+      console.error('❌ Ошибка получения URL:', urlError);
+      throw urlError;
+    }
+    
+    console.log('✅ Публичный URL:', urlData.publicUrl);
+    console.log('=== UPLOAD IMAGE DEBUG END ===');
     
     return urlData.publicUrl;
     
   } catch (error) {
-    console.error('Ошибка загрузки изображения:', error);
+    console.error('💥 КРИТИЧЕСКАЯ ОШИБКА ЗАГРУЗКИ:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      stack: error.stack
+    });
+    console.log('=== UPLOAD IMAGE DEBUG END WITH ERROR ===');
     throw error;
   }
 };
@@ -839,9 +933,11 @@ const uploadImageToStorage = async (base64Image, userId) => {
 // Создание нового товара
 app.post('/api/products/create', async (req, res) => {
   console.log('=== CREATE PRODUCT ===');
-  console.log('Session userId:', req.session.userId);
   
   try {
+    console.log('📦 Тело запроса получено');
+    console.log('Ключи:', Object.keys(req.body || {}));
+    
     const userId = req.session.userId;
     
     if (!userId) {
@@ -853,41 +949,54 @@ app.post('/api/products/create', async (req, res) => {
     
     const { name, description, price, image_base64 } = req.body;
     
-    if (!name || !name.trim()) {
+    console.log('📊 Данные:', {
+      name: name,
+      price: price,
+      description: description,
+      image_base64_length: image_base64?.length || 0
+    });
+    
+    // Валидация
+    if (!name || typeof name !== 'string' || !name.trim()) {
       return res.status(400).json({ 
         success: false,
         error: 'Название товара обязательно' 
       });
     }
     
-    if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
+    const priceNum = parseFloat(price);
+    if (!price || isNaN(priceNum) || priceNum <= 0) {
       return res.status(400).json({ 
         success: false,
         error: 'Цена должна быть положительным числом' 
       });
     }
     
+    // Обработка изображения
     let image_url = null;
     
-    if (image_base64) {
+    if (image_base64 && typeof image_base64 === 'string' && 
+        image_base64.trim() !== "" && image_base64.startsWith('data:image/')) {
+      
+      console.log('🖼️ Загружаю изображение...');
+      
       try {
         image_url = await uploadImageToStorage(image_base64, userId);
-        console.log('✅ Изображение загружено:', image_url);
+        console.log('✅ Изображение загружено, URL:', image_url);
       } catch (uploadError) {
-        console.error('❌ Ошибка загрузки изображения:', uploadError);
-        return res.status(400).json({ 
-          success: false,
-          error: 'Ошибка загрузки изображения' 
-        });
+        console.error('⚠️ Ошибка загрузки изображения:', uploadError.message);
+        image_url = null;
       }
+    } else {
+      console.log('ℹ️ Нет изображения для загрузки');
     }
     
     const { data: product, error: productError } = await supabase
       .from('products')
       .insert([{
         name: name.trim(),
-        description: description?.trim() || '',
-        price: parseFloat(price),
+        description: (description || '').trim(),
+        price: priceNum,
         image_url: image_url,
         user_id: userId,
         created_at: new Date().toISOString(),
@@ -897,23 +1006,24 @@ app.post('/api/products/create', async (req, res) => {
       .single();
     
     if (productError) {
-      console.error('❌ Ошибка создания товара:', productError);
+      console.error('❌ Ошибка Supabase:', productError);
       return res.status(500).json({ 
         success: false,
-        error: 'Ошибка создания товара' 
+        error: 'Ошибка создания товара'
       });
     }
     
-    console.log('✅ Товар создан');
+    console.log('🎉 ТОВАР СОЗДАН! ID:', product.id);
     
     res.status(201).json({
       success: true,
-      message: 'Товар успешно создан',
-      product: product
+      message: image_url ? 'Товар создан с изображением' : 'Товар создан (без изображения)',
+      product: product,
+      hasImage: !!image_url
     });
     
   } catch (err) {
-    console.error('❌ Неожиданная ошибка создания товара:', err);
+    console.error('💥 Критическая ошибка:', err.message);
     res.status(500).json({ 
       success: false,
       error: 'Внутренняя ошибка сервера'

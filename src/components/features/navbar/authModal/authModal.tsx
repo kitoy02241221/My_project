@@ -6,16 +6,18 @@ import { useRegister } from "../../../../hooks/useRegister";
 import { closeModal } from "../../../../store/slices/homePage/openModal.slice";
 import { noHide } from "../../../../store/slices/homePage/buyerOrSeller.slice";
 import { Button, TextField } from "@mui/material";
+import { Registartion } from "./authInterface/registerInteface";
 
 function AuthModal() {
-    const [loginUser, setLoginUser] = useState("");
-    const [passwordUser, setPassworUser] = useState("");
-    const [name, setName] = useState("");
-    const [surname, setSurname] = useState("");
-
-    const { register } = useRegister();
+    const [registerData, setRegisterData] = useState<Registartion>({
+        login: "",
+        password: "",
+        name: "",
+        surname: "",
+    });
 
     const dispatch = useDispatch();
+    const { register } = useRegister();
 
     const data = useAppSelector((state) => state.authType);
     const authType = useAppSelector((state) => state.authType);
@@ -25,21 +27,15 @@ function AuthModal() {
         display: isOpen ? "block" : "none",
     };
 
-    const toggleMode = () => {
-        dispatch(login());
-    };
-
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (authType === false) {
-            await register(loginUser, passwordUser, name, surname);
+            await register(registerData);
             // login
         } else {
-            await register(loginUser, passwordUser, name, surname);
+            await register(registerData);
             // registration
         }
-
         dispatch(noHide());
         dispatch(closeModal());
     };
@@ -49,32 +45,34 @@ function AuthModal() {
             <TextField
                 label="логин"
                 variant="standard"
-                onChange={(e) => setLoginUser(e.target.value)}
+                onChange={(e) => setRegisterData({ ...registerData, login: e.target.value })}
                 type="text"
-            ></TextField>
+            />
 
             <TextField
                 label="пароль"
                 variant="standard"
-                onChange={(e) => setPassworUser(e.target.value)}
+                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 type="password"
-            ></TextField>
+            />
 
             {authType && (
                 <div>
                     <TextField
                         label="имя"
                         variant="standard"
-                        onChange={(e) => setName(e.target.value)}
+                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                         type="text"
-                    ></TextField>
+                    />
 
                     <TextField
                         label="фимилия"
                         variant="standard"
-                        onChange={(e) => setSurname(e.target.value)}
+                        onChange={(e) =>
+                            setRegisterData({ ...registerData, surname: e.target.value })
+                        }
                         type="text"
-                    ></TextField>
+                    />
                 </div>
             )}
 
@@ -86,11 +84,11 @@ function AuthModal() {
                 type="button"
                 variant="outlined"
                 size="small"
-                onClick={toggleMode}
+                onClick={() => {
+                    dispatch(login());
+                }}
             >
-                {data
-                    ? "уже есть аккаунт? войти"
-                    : "нет аккаунта? зарегестрироваться"}
+                {data ? "уже есть аккаунт? войти" : "нет аккаунта? зарегестрироваться"}
             </Button>
         </form>
     );

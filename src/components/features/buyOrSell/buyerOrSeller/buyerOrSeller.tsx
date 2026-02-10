@@ -3,7 +3,6 @@ import { useDispatch } from "react-redux";
 import { hide } from "../../../../store/slices/homePage/buyerOrSeller.slice";
 import api from "../../../../api/axiosBase";
 import { Button } from "@mui/material";
-import { useCallback } from "react";
 
 const buildRoleData = (role: "seller" | "buyer") => ({
     isSeller: role === "seller" ? "seller" : "buyer",
@@ -21,17 +20,14 @@ function BuyerOrSeller() {
         display: isHide ? "block" : "none",
     };
 
-    const chosenRole = useCallback(
-        async (role: "buyer" | "seller") => {
-            try {
-                api.post("/api/user/choose-role", buildRoleData(role));
-                dispatch(hide());
-            } catch (error) {
-                console.error(handleApiError(error));
-            }
-        },
-        [dispatch],
-    );
+    const chosenRole = async (role: "buyer" | "seller") => {
+        try {
+            await api.post("/api/user/choose-role", buildRoleData(role));
+            dispatch(hide());
+        } catch (error) {
+            console.error(handleApiError(error));
+        }
+    };
 
     return (
         <div style={sellorBuyStyle}>
@@ -39,14 +35,18 @@ function BuyerOrSeller() {
             <Button
                 variant="outlined"
                 size="small"
-                onClick={chosenRole.bind(null, "seller")}
+                onClick={() => {
+                    chosenRole("seller");
+                }}
             >
                 продавать
             </Button>
             <Button
                 variant="outlined"
                 size="small"
-                onClick={chosenRole.bind(null, "buyer")}
+                onClick={() => {
+                    chosenRole("buyer");
+                }}
             >
                 покупать
             </Button>

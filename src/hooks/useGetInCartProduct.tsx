@@ -5,26 +5,26 @@ export const useGetInCart = () => {
     const [productinCart, setProductInCart] = useState<any[]>([]);
     const [error, setError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [allPrice, setAllPrice] = useState(0);
 
     const takeProduct = async () => {
         try {
-            setError(false);
             setIsLoading(true);
 
             const response = await api.get("/api/cart");
-
-            if (response.status === 200) {
-                setProductInCart(response.data.items);
-            }
-        } catch (error) {
+            setAllPrice(response.data.total);
+            setProductInCart(response.data.items);
+        } catch {
             setError(true);
         } finally {
             setIsLoading(false);
+            setError(false);
         }
     };
 
     return {
         productinCart,
+        allPrice,
         error,
         isLoading,
         takeProduct,

@@ -42,7 +42,7 @@ function NavBar() {
 
     return (
         <div>
-            <Search></Search>
+            <Search />
             <Button variant="outlined" size="small">
                 главная
             </Button>

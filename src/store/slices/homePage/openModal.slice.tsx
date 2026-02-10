@@ -4,10 +4,10 @@ const openModalSLice = createSlice({
     name: "openModal",
     initialState: false,
     reducers: {
-        openModal: (state) => {
+        openModal: () => {
             return true;
         },
-        closeModal: (state) => {
+        closeModal: () => {
             return false;
         },
     },
