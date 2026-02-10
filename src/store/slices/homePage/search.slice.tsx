@@ -4,10 +4,10 @@ const searchSlice = createSlice({
     name: "search",
     initialState: false,
     reducers: {
-        hideSearch: (state) => {
+        hideSearch: () => {
             return false;
         },
-        noHideSearch: (state) => {
+        noHideSearch: () => {
             return true;
         },
     },

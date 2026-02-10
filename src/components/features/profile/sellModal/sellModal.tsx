@@ -1,56 +1,84 @@
 import { Button, TextField } from "@mui/material";
 import React, { useRef, useState } from "react";
-import { useDispatch } from "react-redux";
+import { CreateProduct } from "../profileInterface/CreateProduct";
 import { close } from "../../../../store/slices/profilePage/openSellModal";
-import { useProduct } from "../../../../hooks/useProduct";
+import { useDispatch } from "react-redux";
+import { useProduct } from "../../../../hooks/useCreateProduct";
 import { UseCropImg } from "../../../../hooks/useCropImg";
 
 function SellModal({ isOpen }: { isOpen: boolean }) {
     const dispatch = useDispatch();
 
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [price, setPrice] = useState(0);
+    const [fromData, setFromData] = useState<CreateProduct>({
+        image_base64: "",
+        name: "",
+        description: "",
+        price: 0,
+    });
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [productIsLoad, setProductIsLoad] = useState(false);
     const [productNotLoaded, setProductNotLoaded] = useState(false);
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { imageBase64, changeInputImg, imgError, setImageBase64 } = UseCropImg();
+    const { sellProduct } = useProduct();
 
-    const changePrice = (e: string) => {
-        setPrice(Number(e) || 0);
+    const productData = () => {
+        setFromData({ ...fromData, image_base64: imageBase64 });
     };
-
-    const { getProduct } = useProduct();
-    const { imageBase64, changeInputImg, imgError } = UseCropImg();
 
     const sellModalStyle = {
         display: isOpen ? "block" : "none",
     };
 
     const submit = async (e: React.FormEvent) => {
-        try {
-            e.preventDefault();
-            const result = await getProduct(
-                imageBase64,
-                name,
-                description,
-                price,
-            );
-            if (result === true) {
-                setProductIsLoad(true);
-                setTimeout(() => {
-                    setProductIsLoad(false);
-                }, 3500);
-            } else {
-                setProductNotLoaded(true);
-                setTimeout(() => {
-                    setProductNotLoaded(false);
-                }, 3500);
-            }
-        } catch (error: any) {
-            setProductIsLoad(false);
-        } finally {
-            setProductIsLoad(false);
+        e.preventDefault();
+
+        console.log("🚀 Отправка формы");
+        console.log("imageBase64 длина:", imageBase64?.length || 0);
+
+        // Проверяем что изображение загружено
+        if (!imageBase64 || imageBase64.trim() === "") {
+            alert("Сначала загрузите изображение!");
+            return;
+        }
+
+        // Проверяем остальные поля
+        if (!fromData.name.trim()) {
+            alert("Введите название товара");
+            return;
+        }
+
+        if (!fromData.price || fromData.price <= 0) {
+            alert("Введите корректную цену");
+            return;
+        }
+        const productData = {
+            name: fromData.name.trim(),
+            description: fromData.description.trim(),
+            price: fromData.price,
+            image_base64: imageBase64,
+        };
+
+        const response = await sellProduct(productData);
+
+        if (response) {
+            setProductIsLoad(true);
+            setTimeout(() => {
+                setProductIsLoad(false);
+                dispatch(close());
+                setFromData({
+                    image_base64: "",
+                    name: "",
+                    description: "",
+                    price: 0,
+                });
+                setImageBase64("");
+            }, 2000);
+        } else {
+            setProductNotLoaded(true);
+            setTimeout(() => {
+                setProductNotLoaded(false);
+            }, 3500);
         }
     };
 
@@ -72,34 +100,34 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
                 type="file"
                 onChange={changeInputImg}
                 ref={fileInputRef}
-            ></TextField>
+            />
 
             <TextField
                 variant="standard"
                 type="text"
                 label="название"
                 onChange={(e) => {
-                    setName(e.target.value);
+                    setFromData({ ...fromData, name: e.target.value });
                 }}
-            ></TextField>
+            />
 
             <TextField
                 variant="standard"
                 type="text"
                 label="описание"
                 onChange={(e) => {
-                    setDescription(e.target.value);
+                    setFromData({ ...fromData, description: e.target.value });
                 }}
-            ></TextField>
+            />
 
             <TextField
                 variant="standard"
                 type="number"
                 label="цена"
                 onChange={(e) => {
-                    changePrice(e.target.value);
+                    setFromData({ ...fromData, price: +e.target.value });
                 }}
-            ></TextField>
+            />
 
             <Button variant="outlined" size="small" type="submit">
                 загрузить

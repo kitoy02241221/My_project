@@ -1,6 +1,7 @@
-import { useEffect } from "react";
-import { useGetInCart } from "../../../hooks/useGetInCart";
+import { useEffect, useState } from "react";
+import { useGetInCart } from "../../../hooks/useGetInCartProduct";
 import { Button } from "@mui/material";
+import { AllProductinCartPrice } from "./allProductinCartPrice/allProductinCartPrice";
 
 const productStyle = {
     margin: "10px",
@@ -14,7 +15,8 @@ const imgStyle = {
 };
 
 function Cart() {
-    const { productinCart, error, isLoading, takeProduct } = useGetInCart();
+    const { productinCart, allPrice, error, isLoading, takeProduct } = useGetInCart();
+    const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
         const getIteminCart = async () => {
@@ -31,17 +33,34 @@ function Cart() {
                 {productinCart.map((item) => (
                     <div style={productStyle} key={item.id}>
                         <h3>{item.product?.name}</h3>
-                        <h4>{item.product?.description}</h4>
                         <img
-                            src={item.product?.image_url}
+                            src={item.product.image_url}
                             alt={item.product?.name}
                             style={imgStyle}
                         />
+                        <h4>{item.product?.description}</h4>
+                        <p>количество: {item.quantity}</p>
+                        <p>{item.product.price}₽</p>
                         <Button variant="outlined" size="small">
                             купить
                         </Button>
                     </div>
                 ))}
+            </div>
+
+            <div>
+                <p>
+                    <strong>{allPrice}₽</strong> всего
+                </p>
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                        setIsOpen(true);
+                    }}
+                >
+                    оформить все
+                </Button>
             </div>
 
             {error && (
@@ -54,6 +73,8 @@ function Cart() {
                     <h2>загрузка товаров...</h2>
                 </div>
             )}
+
+            <AllProductinCartPrice isOpen={isOpen} setIsOpen={setIsOpen} />
         </div>
     );
 }
