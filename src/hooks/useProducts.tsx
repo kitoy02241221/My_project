@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import api from "../api/axiosBase";
 
 type CartType = {
@@ -25,7 +25,7 @@ export const useProducts = () => {
         return "в корзину";
     };
 
-    const checkInCart = async (id: number) => {
+    const checkInCart = useCallback(async (id: number) => {
         try {
             const response = await api.get(`/api/cart/check/${id}`);
             setCartText((prev) => ({
@@ -44,7 +44,7 @@ export const useProducts = () => {
                 },
             }));
         }
-    };
+    }, []);
 
     return {
         buttonText,

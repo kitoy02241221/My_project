@@ -11,18 +11,14 @@ export const useRegister = () => {
 
     const dispatch = useDispatch();
 
-    const authType = useAppSelector((state) => state.authType);
-
-    const register = async (registerData: Registartion) => {
+    const register = async (registerData: Registartion, authType: boolean) => {
         setLoading(true);
         setError(null);
-
         try {
             if (authType === true) {
-                const response = await api.post("/api/auth/register", registerData);
+                await api.post("/api/auth/register", registerData);
                 await api.post("/api/auth/login", registerData);
                 dispatch(setAuth());
-                return { success: true, data: response.data.user };
             } else {
                 await api.post("/api/auth/login", registerData);
                 dispatch(setAuth());
@@ -30,8 +26,6 @@ export const useRegister = () => {
         } catch (err: any) {
             const errorMessage = err.response?.data.message || err.message || "произошла ошибка";
             setError(errorMessage);
-            return { success: false, error: errorMessage };
-        } finally {
             setLoading(false);
         }
     };

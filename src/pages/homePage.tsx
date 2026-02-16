@@ -1,20 +1,21 @@
-import NavBar from "../components/layout/navBar"
-import BuyerOrSeller from "../components/features/buyOrSell/buyerOrSeller/buyerOrSeller"
-import { useSellerStatus } from "../hooks/useSellerStatus"
-import Catalog from "../components/features/catalog/catalog/catalog"
+import { NavBar } from "../components/layout/navBar";
+import BuyerOrSeller from "../components/features/buyOrSell/buyerOrSeller/buyerOrSeller";
+import Catalog from "../components/features/catalog/catalog/catalog";
+import { useSearch } from "../hooks/useSearch";
+import { useEffect } from "react";
 
 function HomePage() {
+    const { search } = useSearch();
 
-    const {roleChosen, checkStatus} = useSellerStatus()
-
-    checkStatus()
-
+    useEffect(() => {
+        search("asdasd");
+    }, []);
     return (
         <>
             <NavBar />
-            {roleChosen && <BuyerOrSeller/>}
-            <Catalog/>
+            <BuyerOrSeller />
+            <Catalog />
         </>
-    )
+    );
 }
-export default HomePage
+export default HomePage;

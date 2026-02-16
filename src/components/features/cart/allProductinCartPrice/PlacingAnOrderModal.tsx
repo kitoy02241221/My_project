@@ -1,13 +1,14 @@
 import { useEffect } from "react";
 import { useGetInCart } from "../../../../hooks/useGetInCartProduct";
 
-export function AllProductinCartPrice({
-    isOpen,
-    setIsOpen,
-}: {
+type ModalProps = {
     isOpen: boolean;
-    setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) {
+    onClose: () => void;
+};
+
+export function PlacingAnOrderModal({ isOpen, onClose }: ModalProps) {
+    if (!isOpen) return null;
+
     const { allPrice, takeProduct } = useGetInCart();
 
     useEffect(() => {
@@ -21,7 +22,7 @@ export function AllProductinCartPrice({
     return (
         <div style={modalStyle}>
             <h2>Оформление заказа</h2>
-            <button onClick={() => setIsOpen(false)}>Закрыть</button>
+            <button onClick={onClose}>Закрыть</button>
             <p>общая сумма заказа составит {allPrice}₽ </p>
         </div>
     );

@@ -1,14 +1,15 @@
 import { Button, TextField } from "@mui/material";
 import React, { useRef, useState } from "react";
 import { CreateProduct } from "../profileInterface/CreateProduct";
-import { close } from "../../../../store/slices/profilePage/openSellModal";
-import { useDispatch } from "react-redux";
 import { useProduct } from "../../../../hooks/useCreateProduct";
 import { UseCropImg } from "../../../../hooks/useCropImg";
 
-function SellModal({ isOpen }: { isOpen: boolean }) {
-    const dispatch = useDispatch();
+type PropsModal = {
+    isOpen: boolean;
+    onClose: () => void;
+};
 
+function SellModal({ isOpen, onClose }: PropsModal) {
     const [fromData, setFromData] = useState<CreateProduct>({
         image_base64: "",
         name: "",
@@ -22,50 +23,23 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
     const { imageBase64, changeInputImg, imgError, setImageBase64 } = UseCropImg();
     const { sellProduct } = useProduct();
 
-    const productData = () => {
-        setFromData({ ...fromData, image_base64: imageBase64 });
-    };
-
     const sellModalStyle = {
         display: isOpen ? "block" : "none",
     };
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        console.log("🚀 Отправка формы");
-        console.log("imageBase64 длина:", imageBase64?.length || 0);
-
-        // Проверяем что изображение загружено
-        if (!imageBase64 || imageBase64.trim() === "") {
-            alert("Сначала загрузите изображение!");
-            return;
-        }
-
-        // Проверяем остальные поля
-        if (!fromData.name.trim()) {
-            alert("Введите название товара");
-            return;
-        }
-
-        if (!fromData.price || fromData.price <= 0) {
-            alert("Введите корректную цену");
-            return;
-        }
         const productData = {
             name: fromData.name.trim(),
             description: fromData.description.trim(),
             price: fromData.price,
             image_base64: imageBase64,
         };
-
         const response = await sellProduct(productData);
-
         if (response) {
             setProductIsLoad(true);
             setTimeout(() => {
                 setProductIsLoad(false);
-                dispatch(close());
                 setFromData({
                     image_base64: "",
                     name: "",
@@ -84,18 +58,12 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
 
     return (
         <form onSubmit={submit} style={sellModalStyle}>
-            <Button
-                variant="outlined"
-                size="small"
-                type="button"
-                onClick={() => {
-                    dispatch(close());
-                }}
-            >
+            <Button variant="outlined" size="small" type="button" onClick={onClose}>
                 закрыть
             </Button>
             <h1>загрузка товара</h1>
             <TextField
+                required={true}
                 variant="standard"
                 type="file"
                 onChange={changeInputImg}
@@ -103,6 +71,7 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
             />
 
             <TextField
+                required={true}
                 variant="standard"
                 type="text"
                 label="название"
@@ -112,6 +81,7 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
             />
 
             <TextField
+                required={true}
                 variant="standard"
                 type="text"
                 label="описание"
@@ -121,6 +91,7 @@ function SellModal({ isOpen }: { isOpen: boolean }) {
             />
 
             <TextField
+                required={true}
                 variant="standard"
                 type="number"
                 label="цена"

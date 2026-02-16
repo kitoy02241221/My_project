@@ -3,34 +3,41 @@ import { useDispatch } from "react-redux";
 import { hide } from "../../../../store/slices/homePage/buyerOrSeller.slice";
 import api from "../../../../api/axiosBase";
 import { Button } from "@mui/material";
+import { useSellerStatus } from "../../../../hooks/useSellerStatus";
+import { useEffect, useState } from "react";
 
 const buildRoleData = (role: "seller" | "buyer") => ({
     isSeller: role === "seller" ? "seller" : "buyer",
 });
 
-const handleApiError = (error: any) => {
-    return error.response?.data?.message || "произошла ошибка";
-};
-
 function BuyerOrSeller() {
-    const dispatch = useDispatch();
-    const isHide = useAppSelector((state) => state.buyerOrSeller);
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const sellorBuyStyle = {
-        display: isHide ? "block" : "none",
-    };
+    const dispatch = useDispatch();
+    const isAuth = useAppSelector((state) => state.auth);
+    const { roleStatus, checkStatus } = useSellerStatus();
+
+    useEffect(() => {
+        checkStatus();
+    }, [isAuth]);
+
+    if (roleStatus.isLoading) return null;
+    if (!isAuth) return null;
+    if (roleStatus.hasChosenRole === true) return null;
 
     const chosenRole = async (role: "buyer" | "seller") => {
         try {
             await api.post("/api/user/choose-role", buildRoleData(role));
+            await checkStatus();
             dispatch(hide());
         } catch (error) {
-            console.error(handleApiError(error));
+            setErrorMessage("произошла ошибка");
         }
     };
 
     return (
-        <div style={sellorBuyStyle}>
+        <div>
+            {errorMessage && <h1>{errorMessage}</h1>}
             <h1>вы хотите продавать или покупать?</h1>
             <Button
                 variant="outlined"

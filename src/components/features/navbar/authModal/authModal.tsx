@@ -1,6 +1,5 @@
 import { useAppSelector } from "../../../../hooks/useAppSelector";
 import { useDispatch } from "react-redux";
-import { login } from "../../../../store/slices/homePage/authTypeModal.slice";
 import { useState } from "react";
 import { useRegister } from "../../../../hooks/useRegister";
 import { closeModal } from "../../../../store/slices/homePage/openModal.slice";
@@ -8,7 +7,13 @@ import { noHide } from "../../../../store/slices/homePage/buyerOrSeller.slice";
 import { Button, TextField } from "@mui/material";
 import { Registartion } from "./authInterface/registerInteface";
 
-function AuthModal() {
+type openModal = {
+    isOpen: boolean;
+    onClose: () => void;
+};
+
+function AuthModal({ isOpen, onClose }: openModal) {
+    if (!isOpen) return null;
     const [registerData, setRegisterData] = useState<Registartion>({
         login: "",
         password: "",
@@ -16,12 +21,10 @@ function AuthModal() {
         surname: "",
     });
 
+    const [authType, setAuthType] = useState(Boolean);
+
     const dispatch = useDispatch();
     const { register } = useRegister();
-
-    const data = useAppSelector((state) => state.authType);
-    const authType = useAppSelector((state) => state.authType);
-    const isOpen = useAppSelector((state) => state.openModal);
 
     const formStyle = {
         display: isOpen ? "block" : "none",
@@ -30,14 +33,20 @@ function AuthModal() {
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (authType === false) {
-            await register(registerData);
+            await register(registerData, authType);
+            onClose();
             // login
         } else {
-            await register(registerData);
+            await register(registerData, authType);
+            onClose();
             // registration
         }
         dispatch(noHide());
         dispatch(closeModal());
+    };
+
+    const switchAuthMode = () => {
+        setAuthType((prev) => !prev);
     };
 
     return (
@@ -45,6 +54,7 @@ function AuthModal() {
             <TextField
                 label="логин"
                 variant="standard"
+                required={true}
                 onChange={(e) => setRegisterData({ ...registerData, login: e.target.value })}
                 type="text"
             />
@@ -52,6 +62,7 @@ function AuthModal() {
             <TextField
                 label="пароль"
                 variant="standard"
+                required={true}
                 onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 type="password"
             />
@@ -61,6 +72,7 @@ function AuthModal() {
                     <TextField
                         label="имя"
                         variant="standard"
+                        required={true}
                         onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                         type="text"
                     />
@@ -68,6 +80,7 @@ function AuthModal() {
                     <TextField
                         label="фимилия"
                         variant="standard"
+                        required={true}
                         onChange={(e) =>
                             setRegisterData({ ...registerData, surname: e.target.value })
                         }
@@ -77,18 +90,11 @@ function AuthModal() {
             )}
 
             <Button type="submit" variant="outlined" size="small">
-                {data ? "зарегестрироваться" : "войти"}
+                {authType ? "зарегестрироваться" : "войти"}
             </Button>
 
-            <Button
-                type="button"
-                variant="outlined"
-                size="small"
-                onClick={() => {
-                    dispatch(login());
-                }}
-            >
-                {data ? "уже есть аккаунт? войти" : "нет аккаунта? зарегестрироваться"}
+            <Button type="button" variant="outlined" size="small" onClick={switchAuthMode}>
+                {authType ? "уже есть аккаунт? войти" : "нет аккаунта? зарегестрироваться"}
             </Button>
         </form>
     );

@@ -1,16 +1,16 @@
-import HomePage from './pages/homePage';
-import { Route, Routes } from 'react-router-dom';
-import MyProfile from './components/features/profile/myProfile';
-import Cart from './components/features/cart/cart';
+import HomePage from "./pages/homePage";
+import { Route, Routes } from "react-router-dom";
+import { CartPage } from "./pages/cartPage";
+import { ProfilePage } from "./pages/profilePage";
 
 function App() {
-  return (
-    <Routes>
-      <Route path='/' element={<HomePage/>}/>
-      <Route path='/profile' element={<MyProfile/>}/>
-      <Route path='/cart' element={<Cart/>}/>
-    </Routes>
-  );
+    return (
+        <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/cart" element={<CartPage />} />
+        </Routes>
+    );
 }
 
 export default App;
