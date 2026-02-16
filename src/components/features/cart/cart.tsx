@@ -1,24 +1,18 @@
-import { useEffect } from "react";
-import { useGetInCart } from "../../../hooks/useGetInCart";
+import { useEffect, useState } from "react";
+import { useGetInCart } from "../../../hooks/useGetInCartProduct";
 import { Button } from "@mui/material";
+import { PlacingAnOrderModal } from "./allProductinCartPrice/PlacingAnOrderModal";
 
-const productStyle = {
-    margin: "10px",
-};
-
-const imgStyle = {
-    display: "block",
-    height: "250px",
-    width: "250px",
-    borderRadius: "8px",
-};
+import { CartItem } from "./cartItem/cartItem";
 
 function Cart() {
-    const { productinCart, error, isLoading, takeProduct } = useGetInCart();
+    const [isOpen, setIsOpen] = useState(false);
+
+    const { allPrice, productinCart, error, isLoading, takeProduct } = useGetInCart();
 
     useEffect(() => {
-        const getIteminCart = async () => {
-            await takeProduct();
+        const getIteminCart = () => {
+            takeProduct();
         };
         getIteminCart();
     }, []);
@@ -26,22 +20,20 @@ function Cart() {
     return (
         <div>
             <div>
-                <h1>{productinCart.length} товаров в корзине</h1>
-
-                {productinCart.map((item) => (
-                    <div style={productStyle} key={item.id}>
-                        <h3>{item.product?.name}</h3>
-                        <h4>{item.product?.description}</h4>
-                        <img
-                            src={item.product?.image_url}
-                            alt={item.product?.name}
-                            style={imgStyle}
-                        />
-                        <Button variant="outlined" size="small">
-                            купить
-                        </Button>
-                    </div>
-                ))}
+                {error && <p>ошибка загрузки товаров</p>}
+                <p>
+                    <strong>{allPrice}₽</strong> всего
+                </p>
+                <CartItem productinCart={productinCart} />
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                        setIsOpen(true);
+                    }}
+                >
+                    оформить все
+                </Button>
             </div>
 
             {error && (
@@ -54,6 +46,13 @@ function Cart() {
                     <h2>загрузка товаров...</h2>
                 </div>
             )}
+
+            <PlacingAnOrderModal
+                isOpen={isOpen}
+                onClose={() => {
+                    setIsOpen(false);
+                }}
+            />
         </div>
     );
 }

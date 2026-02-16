@@ -4,10 +4,10 @@ const authSlice = createSlice({
     name: "authSlice",
     initialState: false,
     reducers: {
-        setAuth: (state) => {
+        setAuth: () => {
             return true;
         },
-        removeAuth: (state) => {
+        removeAuth: () => {
             return false;
         },
     },

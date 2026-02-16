@@ -1,47 +1,52 @@
 import { useAppSelector } from "../../../../hooks/useAppSelector";
 import { useDispatch } from "react-redux";
-import { login } from "../../../../store/slices/homePage/authTypeModal.slice";
 import { useState } from "react";
 import { useRegister } from "../../../../hooks/useRegister";
 import { closeModal } from "../../../../store/slices/homePage/openModal.slice";
 import { noHide } from "../../../../store/slices/homePage/buyerOrSeller.slice";
 import { Button, TextField } from "@mui/material";
+import { Registartion } from "./authInterface/registerInteface";
 
-function AuthModal() {
-    const [loginUser, setLoginUser] = useState("");
-    const [passwordUser, setPassworUser] = useState("");
-    const [name, setName] = useState("");
-    const [surname, setSurname] = useState("");
+type openModal = {
+    isOpen: boolean;
+    onClose: () => void;
+};
 
-    const { register } = useRegister();
+function AuthModal({ isOpen, onClose }: openModal) {
+    if (!isOpen) return null;
+    const [registerData, setRegisterData] = useState<Registartion>({
+        login: "",
+        password: "",
+        name: "",
+        surname: "",
+    });
+
+    const [authType, setAuthType] = useState(Boolean);
 
     const dispatch = useDispatch();
-
-    const data = useAppSelector((state) => state.authType);
-    const authType = useAppSelector((state) => state.authType);
-    const isOpen = useAppSelector((state) => state.openModal);
+    const { register } = useRegister();
 
     const formStyle = {
         display: isOpen ? "block" : "none",
     };
 
-    const toggleMode = () => {
-        dispatch(login());
-    };
-
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (authType === false) {
-            await register(loginUser, passwordUser, name, surname);
+            await register(registerData, authType);
+            onClose();
             // login
         } else {
-            await register(loginUser, passwordUser, name, surname);
+            await register(registerData, authType);
+            onClose();
             // registration
         }
-
         dispatch(noHide());
         dispatch(closeModal());
+    };
+
+    const switchAuthMode = () => {
+        setAuthType((prev) => !prev);
     };
 
     return (
@@ -49,48 +54,47 @@ function AuthModal() {
             <TextField
                 label="логин"
                 variant="standard"
-                onChange={(e) => setLoginUser(e.target.value)}
+                required={true}
+                onChange={(e) => setRegisterData({ ...registerData, login: e.target.value })}
                 type="text"
-            ></TextField>
+            />
 
             <TextField
                 label="пароль"
                 variant="standard"
-                onChange={(e) => setPassworUser(e.target.value)}
+                required={true}
+                onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                 type="password"
-            ></TextField>
+            />
 
             {authType && (
                 <div>
                     <TextField
                         label="имя"
                         variant="standard"
-                        onChange={(e) => setName(e.target.value)}
+                        required={true}
+                        onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
                         type="text"
-                    ></TextField>
+                    />
 
                     <TextField
                         label="фимилия"
                         variant="standard"
-                        onChange={(e) => setSurname(e.target.value)}
+                        required={true}
+                        onChange={(e) =>
+                            setRegisterData({ ...registerData, surname: e.target.value })
+                        }
                         type="text"
-                    ></TextField>
+                    />
                 </div>
             )}
 
             <Button type="submit" variant="outlined" size="small">
-                {data ? "зарегестрироваться" : "войти"}
+                {authType ? "зарегестрироваться" : "войти"}
             </Button>
 
-            <Button
-                type="button"
-                variant="outlined"
-                size="small"
-                onClick={toggleMode}
-            >
-                {data
-                    ? "уже есть аккаунт? войти"
-                    : "нет аккаунта? зарегестрироваться"}
+            <Button type="button" variant="outlined" size="small" onClick={switchAuthMode}>
+                {authType ? "уже есть аккаунт? войти" : "нет аккаунта? зарегестрироваться"}
             </Button>
         </form>
     );

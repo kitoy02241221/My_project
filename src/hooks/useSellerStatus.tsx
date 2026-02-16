@@ -1,36 +1,50 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import api from "../api/axiosBase";
 
+interface RoleCheckResponse {
+    success: boolean;
+    roleChosen: boolean;
+    role: "false" | "seller" | "buyer";
+}
+
+interface SellerStatus {
+    isSeller: boolean;
+    hasChosenRole: boolean;
+    isLoading: boolean;
+    error: "string" | null;
+}
+
 export const useSellerStatus = () => {
-    const [roleStatus, setRoleStatus] = useState(false);
-    const [error, setError] = useState("");
-    const [roleChosen, setRoleChosen] = useState(false);
+    const [roleStatus, setRoleStatus] = useState<SellerStatus>({
+        isSeller: false,
+        hasChosenRole: false,
+        isLoading: false,
+        error: null,
+    });
 
-    const checkStatus = async () => {
+    const checkStatus = useCallback(async () => {
+        setRoleStatus((prev) => ({ ...prev, isLoading: true, error: null }));
         try {
-            const response = await api.get("/api/user/role-check");
-            const { success, roleChosen, role } = await response.data;
+            const { data } = await api.get<RoleCheckResponse>("/api/user/role-check");
 
-            if (success === true && roleChosen === false) {
-                setRoleChosen(true);
-            } else {
-                setRoleChosen(false);
-            }
-
-            if (roleChosen === true && role === "seller") {
-                setRoleStatus(true);
-            } else {
-                setRoleStatus(false);
-            }
+            setRoleStatus({
+                isSeller: data.role === "seller",
+                hasChosenRole: data.roleChosen,
+                isLoading: false,
+                error: null,
+            });
         } catch (error) {
-            return error;
+            setRoleStatus({
+                isSeller: false,
+                hasChosenRole: false,
+                isLoading: false,
+                error: null,
+            });
         }
-    };
+    }, []);
 
     return {
         roleStatus,
-        error,
         checkStatus,
-        roleChosen,
     };
 };

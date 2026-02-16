@@ -1,41 +1,49 @@
-import { Button, TextField } from "@mui/material"
-import { useAppSelector } from "../../../../hooks/useAppSelector"
-import { hideSearch, noHideSearch } from "../../../../store/slices/homePage/search.slice"
-import { useDispatch } from "react-redux"
+import { Button, TextField } from "@mui/material";
+import { searching } from "../../../../store/slices/search/search.slice";
+import { useDispatch } from "react-redux";
+import { useSearch } from "../../../../hooks/useSearch";
+import { useRef } from "react";
 
+type modalProp = {
+    isSearch: boolean;
+    onClose: () => void;
+};
 
-function Search () {
-    
-    const dispatch = useDispatch()
-    const isSeacrh = useAppSelector(state => state.search)
+function Search({ isSearch, onClose }: modalProp) {
+    const dispatch = useDispatch();
+    const { search } = useSearch();
+    const timeoutRef = useRef(0);
 
-    const searchStyle = {
-        display: isSeacrh ? "none" : "block"
-    }
     const inputStyle = {
-        display: isSeacrh ? "block" : "none"
-    }
+        display: isSearch ? "block" : "none",
+    };
 
-    const openSearch = () => {
-        if(isSeacrh === false) {
-            dispatch(noHideSearch())
-        } if (isSeacrh === true) {
-            dispatch(hideSearch())
+    const changeSearch = (e: string) => {
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
         }
-    }
-
+        timeoutRef.current = setTimeout(() => {
+            search(e);
+            dispatch(searching(true));
+        }, 500) as unknown as number;
+    };
 
     return (
         <div>
             <div style={inputStyle}>
-
-                <TextField size="small" type="text" label="поиск" variant="standard"></TextField>
-            <Button onClick={openSearch} variant="outlined" size="small">x</Button>
+                <TextField
+                    size="small"
+                    type="text"
+                    label="поиск"
+                    variant="standard"
+                    onChange={(e) => changeSearch(e.target.value)}
+                />
+                <Button onClick={onClose} variant="outlined" size="small">
+                    x
+                </Button>
             </div>
-
-            <Button style={searchStyle} onClick={openSearch} variant="outlined" size="small">поиск</Button>
         </div>
-    )
+    );
 }
 
-export default Search
+export default Search;

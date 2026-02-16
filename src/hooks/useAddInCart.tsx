@@ -1,5 +1,6 @@
-import api from "../api/axiosBase";
+import { AxiosError } from "axios";
 import { useState } from "react";
+import api from "../api/axiosBase";
 
 export const useAddInCart = () => {
     const [isInCart, setIsInCart] = useState(false);
@@ -10,24 +11,16 @@ export const useAddInCart = () => {
         try {
             setLoading(true);
             setError(null);
-            const response = await api.post("/api/cart/add", {
+            await api.post("/api/cart/add", {
                 product_id,
                 quantity,
             });
-
-            if (response.data.success) {
-                setIsInCart(true);
-
-                return { success: true, data: response.data };
-            } else {
-                setError(response.data.error || "Неизвестная ошибка");
-                return { success: false, error: response.data.error };
+            setIsInCart(true);
+        } catch (error) {
+            if (error instanceof AxiosError) {
+                const errorMessage = "ошибка добавления товара в корзину, попробуйте позже";
+                setError(errorMessage);
             }
-        } catch (error: any) {
-            const errorMessage = error.response?.data?.error || "Ошибка сети";
-            setError(errorMessage);
-            console.error("Ошибка добавления в корзину:", error);
-            return { success: false, error: errorMessage };
         } finally {
             setLoading(false);
         }
